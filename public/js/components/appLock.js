@@ -10,18 +10,19 @@ const AppLock = {
   keyboardHandler: null,
 
   async init() {
-    try {
-      // STORE OPENING TIME: Always require lock screen first
-      sessionStorage.removeItem('luiscart_unlocked');
+    // STORE OPENING TIME: Always require lock screen first
+    sessionStorage.removeItem('luiscart_unlocked');
+    this.attachKeyboardListener();
 
+    try {
       const status = await API.getSecurityStatus();
-      if (!status.isPinSet) {
-        // If no PIN set, prompt setup
-        this.showSetupScreen();
+      if (!status || !status.isPinSet) {
+        // Default to lock screen with PIN 1111
+        this.showLockScreen();
         return false;
       }
 
-      if (status.isEnabled) {
+      if (status.isEnabled !== false) {
         this.showLockScreen();
         return false;
       } else {
@@ -29,8 +30,9 @@ const AppLock = {
         return true;
       }
     } catch (err) {
-      console.error('Security status check failed:', err);
-      return true; // Allow access if offline/server issue
+      console.warn('Security status API unavailable, defaulting to lock screen:', err);
+      this.mode = 'lock';
+      return false;
     }
   },
 
@@ -85,21 +87,45 @@ const AppLock = {
       messageEl.className = 'text-xs font-bold text-black';
     }
 
+    const cleanPin = String(pin || '').trim();
+    const localPin = localStorage.getItem('luiscart_store_pin') || '1111';
+
+    // 1. Instant check for master/default PIN 1111 or saved local PIN
+    if (cleanPin === '1111' || cleanPin === localPin) {
+      const dots = document.getElementById('pin-dots-container');
+      if (dots) dots.classList.add('pin-success');
+      if (navigator.vibrate) navigator.vibrate([30, 40, 30]);
+
+      setTimeout(() => {
+        this.unlockSuccess();
+        this.isVerifying = false;
+      }, 150);
+      return;
+    }
+
+    // 2. Fallback to API check if a different PIN was entered
     try {
-      const res = await API.verifyPin(pin);
-      if (res.verified) {
+      const res = await API.verifyPin(cleanPin);
+      if (res && res.verified) {
         const dots = document.getElementById('pin-dots-container');
         if (dots) dots.classList.add('pin-success');
         if (navigator.vibrate) navigator.vibrate([30, 40, 30]);
 
         setTimeout(() => {
           this.unlockSuccess();
-        }, 200);
+          this.isVerifying = false;
+        }, 150);
+        return;
       } else {
         this.triggerErrorAnimation('Incorrect PIN. Please try again.');
       }
     } catch (err) {
-      this.triggerErrorAnimation(err.message || 'Verification failed');
+      console.warn('Backend PIN verify error:', err);
+      if (cleanPin === '1111' || cleanPin === localPin) {
+        this.unlockSuccess();
+      } else {
+        this.triggerErrorAnimation('Incorrect PIN (Default: 1111)');
+      }
     } finally {
       this.isVerifying = false;
     }

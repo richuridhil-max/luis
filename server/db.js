@@ -177,6 +177,12 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
     CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
     CREATE INDEX IF NOT EXISTS idx_order_timeline_order ON order_timeline(order_id);
+
+    INSERT OR IGNORE INTO store_settings (key, value) VALUES
+      ('security_pin_hash', '44f88bc32a736065cc9f20d632b26a12cd31c4a6ab1e623d414d7520c4907b82'),
+      ('security_pin_enabled', 'true'),
+      ('store_name', 'LUISCART'),
+      ('currency', 'INR');
   `);
 }
 
