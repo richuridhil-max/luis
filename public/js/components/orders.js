@@ -33,7 +33,10 @@ const OrdersComponent = {
     }
   },
 
-  renderView(container, { orders, pagination, badgeCounts }) {
+  renderView(container, rawData = {}) {
+    const orders = rawData.orders || (Array.isArray(rawData) ? rawData : []);
+    const pagination = rawData.pagination || { page: 1, limit: 20, total: orders.length, totalPages: 1 };
+    const badgeCounts = rawData.badgeCounts || rawData.statusBadgeCounts || { ALL: orders.length, NEW: 0, CONFIRMED: 0, SHIPPED: 0, DELIVERED: 0, CANCELLED: 0 };
     const tabs = [
       { key: 'ALL', label: 'All Orders', badgeKey: 'ALL' },
       { key: 'NEW', label: 'New / Pending COD', badgeKey: 'NEW' },

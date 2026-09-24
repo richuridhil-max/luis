@@ -26,11 +26,20 @@ const DashboardComponent = {
     }
   },
 
-  renderView(container, data) {
-    const kpis = data.kpis;
-    const orderAnalytics = data.orderAnalytics;
-    const inv = data.inventoryStatus;
-    const cust = data.customerAnalytics;
+  renderView(container, rawData) {
+    const data = rawData || {};
+    const kpis = data.kpis || {};
+    const getVal = (obj, def = 0) => (obj && typeof obj.value !== 'undefined' ? obj.value : (typeof obj === 'number' ? obj : def));
+    const getPct = (obj, def = 0) => (obj && typeof obj.percentChange !== 'undefined' ? obj.percentChange : def);
+
+    const orderAnalytics = data.orderAnalytics || {};
+    ['NEW', 'CONFIRMED', 'PROCESSING', 'PACKED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'RETURN_REQUESTED', 'RETURNED', 'REFUNDED'].forEach(st => {
+      orderAnalytics[st] = orderAnalytics[st] || { count: 0, value: 0 };
+    });
+
+    data.topProducts = Array.isArray(data.topProducts) ? data.topProducts : [];
+    data.revenueTrend = Array.isArray(data.revenueTrend) ? data.revenueTrend : [];
+    data.recentTransactions = Array.isArray(data.recentTransactions) ? data.recentTransactions : [];
 
     container.innerHTML = `
       <div class="space-y-6">
@@ -59,8 +68,8 @@ const DashboardComponent = {
           <!-- 1. Total Revenue -->
           ${this.renderKpiCard({
             title: 'Total Revenue',
-            value: Utils.formatCurrency(kpis.totalRevenue.value),
-            subtext: `${this.renderTrendBadge(kpis.totalRevenue.percentChange)} vs previous period`,
+            value: Utils.formatCurrency(getVal(kpis.totalRevenue)),
+            subtext: `${this.renderTrendBadge(getPct(kpis.totalRevenue))} vs previous period`,
             icon: 'banknote',
             colorClass: 'text-black bg-zinc-100 border border-zinc-200'
           })}
@@ -68,8 +77,8 @@ const DashboardComponent = {
           <!-- 2. Ad Spend -->
           ${this.renderKpiCard({
             title: 'Ad Spend (Meta/Google)',
-            value: Utils.formatCurrency(kpis.adSpend.value),
-            subtext: `${this.renderTrendBadge(kpis.adSpend.percentChange)} marketing spend`,
+            value: Utils.formatCurrency(getVal(kpis.adSpend)),
+            subtext: `${this.renderTrendBadge(getPct(kpis.adSpend))} marketing spend`,
             icon: 'flame',
             colorClass: 'text-black bg-zinc-100 border border-zinc-200'
           })}
@@ -77,8 +86,8 @@ const DashboardComponent = {
           <!-- 3. Blended ROAS -->
           ${this.renderKpiCard({
             title: 'Blended ROAS',
-            value: (kpis.roas.value || 0) + 'x',
-            subtext: `<span class="text-black font-bold">${kpis.roas.value >= 2.0 ? 'Profitable Scale' : 'Optimizing'}</span> • Target: 3.5x`,
+            value: (getVal(kpis.roas) || 0) + 'x',
+            subtext: `<span class="text-black font-bold">${getVal(kpis.roas) >= 2.0 ? 'Profitable Scale' : 'Optimizing'}</span> • Target: 3.5x`,
             icon: 'trending-up',
             colorClass: 'text-black bg-zinc-100 border border-zinc-200'
           })}
@@ -86,7 +95,7 @@ const DashboardComponent = {
           <!-- 4. Supplier COGS -->
           ${this.renderKpiCard({
             title: 'Supplier COGS',
-            value: Utils.formatCurrency(kpis.supplierCogs.value),
+            value: Utils.formatCurrency(getVal(kpis.supplierCogs)),
             subtext: `Direct CJ / 3PL sourcing cost`,
             icon: 'truck',
             colorClass: 'text-black bg-zinc-100 border border-zinc-200'
@@ -95,7 +104,7 @@ const DashboardComponent = {
           <!-- 5. Net Dropship Profit -->
           ${this.renderKpiCard({
             title: 'Net Profit (After Ads)',
-            value: Utils.formatCurrency(kpis.estimatedProfit.value),
+            value: Utils.formatCurrency(getVal(kpis.estimatedProfit)),
             subtext: `After Ad Spend, COGS & RTOs`,
             icon: 'coins',
             colorClass: 'text-black bg-zinc-100 border border-zinc-200'
@@ -104,8 +113,8 @@ const DashboardComponent = {
           <!-- 6. Total Orders -->
           ${this.renderKpiCard({
             title: 'Total Orders',
-            value: Utils.formatNumber(kpis.totalOrders.value) + ' orders',
-            subtext: `<span class="text-black font-bold">${kpis.totalOrders.prepaidCount || 0} Prepaid</span> • <span class="text-black font-bold">${kpis.totalOrders.codCount || 0} COD</span>`,
+            value: Utils.formatNumber(getVal(kpis.totalOrders)) + ' orders',
+            subtext: `<span class="text-black font-bold">${kpis.totalOrders?.prepaidCount || 0} Prepaid</span> • <span class="text-black font-bold">${kpis.totalOrders?.codCount || 0} COD</span>`,
             icon: 'shopping-bag',
             colorClass: 'text-black bg-zinc-100 border border-zinc-200'
           })}
@@ -113,8 +122,8 @@ const DashboardComponent = {
           <!-- 7. RTO Rate % -->
           ${this.renderKpiCard({
             title: 'RTO Rate %',
-            value: (kpis.rtoRate.value || 0) + '%',
-            subtext: `<span class="font-bold text-black">${kpis.rtoRate.rtoCount || 0} Returns</span> to Origin`,
+            value: (getVal(kpis.rtoRate) || 0) + '%',
+            subtext: `<span class="font-bold text-black">${kpis.rtoRate?.rtoCount || 0} Returns</span> to Origin`,
             icon: 'rotate-ccw',
             colorClass: 'text-black bg-zinc-100 border border-zinc-200'
           })}
@@ -122,7 +131,7 @@ const DashboardComponent = {
           <!-- 8. Pending COD Remittance -->
           ${this.renderKpiCard({
             title: 'Pending COD Cash',
-            value: Utils.formatCurrency(kpis.pendingPayments.value),
+            value: Utils.formatCurrency(getVal(kpis.pendingPayments)),
             subtext: `Awaiting courier remittance`,
             icon: 'clock',
             colorClass: 'text-black bg-zinc-100 border border-zinc-200'
@@ -248,11 +257,11 @@ const DashboardComponent = {
               <div class="p-3.5 bg-zinc-50 rounded-xl border border-zinc-200 flex justify-between items-center">
                 <div>
                   <span class="text-xs text-zinc-500 font-medium">COD Share</span>
-                  <p class="text-xl font-black text-black font-mono">${Math.round(((kpis.totalOrders.codCount || 0) / (kpis.totalOrders.value || 1)) * 100)}%</p>
+                  <p class="text-xl font-black text-black font-mono">${Math.round(((kpis.totalOrders?.codCount || 0) / (getVal(kpis.totalOrders) || 1)) * 100)}%</p>
                 </div>
                 <div class="text-right">
                   <span class="text-xs text-zinc-500 font-medium">Prepaid Share</span>
-                  <p class="text-xl font-black text-black font-mono">${Math.round(((kpis.totalOrders.prepaidCount || 0) / (kpis.totalOrders.value || 1)) * 100)}%</p>
+                  <p class="text-xl font-black text-black font-mono">${Math.round(((kpis.totalOrders?.prepaidCount || 0) / (getVal(kpis.totalOrders) || 1)) * 100)}%</p>
                 </div>
               </div>
 
@@ -478,15 +487,15 @@ const DashboardComponent = {
         this.orderChartInstance.destroy();
       }
 
-      const analytics = data.orderAnalytics;
+      const analytics = data.orderAnalytics || {};
       const statusLabels = ['Delivered', 'Shipped', 'Processing', 'Confirmed', 'New', 'Returned'];
       const statusCounts = [
-        analytics.DELIVERED.count,
-        analytics.SHIPPED.count,
-        analytics.PROCESSING.count,
-        analytics.CONFIRMED.count,
-        analytics.NEW.count,
-        analytics.RETURNED.count + analytics.CANCELLED.count
+        analytics.DELIVERED?.count || 0,
+        analytics.SHIPPED?.count || 0,
+        analytics.PROCESSING?.count || 0,
+        analytics.CONFIRMED?.count || 0,
+        analytics.NEW?.count || 0,
+        (analytics.RETURNED?.count || 0) + (analytics.CANCELLED?.count || 0)
       ];
 
       this.orderChartInstance = new Chart(orderCtx, {
