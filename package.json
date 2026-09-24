@@ -1,0 +1,21 @@
+{
+  "name": "luiscart-ecommerce-platform",
+  "version": "1.0.0",
+  "description": "LUISCART Premium E-Commerce Management & Admin Platform",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "seed": "node server/seed.js"
+  },
+  "keywords": [
+    "ecommerce",
+    "admin-dashboard",
+    "order-management",
+    "crm",
+    "inventory",
+    "billing",
+    "luiscart"
+  ],
+  "author": "Google Deepmind Advanced Agentic Coding",
+  "license": "MIT"
+}

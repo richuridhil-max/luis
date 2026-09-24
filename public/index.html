@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LUISCART — Dropshipping Management Platform</title>
+  <link rel="icon" type="image/png" href="/assets/luiscart-logo.png">
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Theme Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-white text-black min-h-screen flex flex-col antialiased selection:bg-black selection:text-white">
+
+  <!-- ==================== INSTANT MONOCHROME APP LOCK SCREEN ==================== -->
+  <div id="security-lock-overlay" class="fixed inset-0 z-[99999] bg-white flex flex-col items-center justify-between p-6 sm:p-8 select-none text-black">
+    <!-- Top Brand Header -->
+    <div class="w-full max-w-sm flex items-center justify-between pt-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-black text-xs shadow-xs">
+          LC
+        </div>
+        <span class="font-black text-sm tracking-tight text-black">LUISCART</span>
+      </div>
+      <span class="text-[11px] font-bold text-zinc-400">STORE PASSKEY</span>
+    </div>
+
+    <!-- Main Center Content: Title, PIN Dots & Error message -->
+    <div class="w-full max-w-xs flex flex-col items-center text-center my-auto py-4">
+      <!-- Shield Lock Icon -->
+      <div class="w-16 h-16 rounded-2xl border-2 border-black bg-white flex items-center justify-center text-2xl shadow-sm mb-4">
+        <svg class="w-8 h-8 text-black" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+
+      <h2 id="pin-modal-title" class="text-xl sm:text-2xl font-black text-black tracking-tight mb-1">
+        Store Protected
+      </h2>
+      <p id="pin-modal-subtitle" class="text-xs text-zinc-500 max-w-xs mb-6">
+        Enter your 4-digit PIN to access LUISCART
+      </p>
+
+      <!-- 4 PIN Indicator Dots -->
+      <div id="pin-dots-container" class="flex items-center justify-center gap-4 py-2 mb-3">
+        <div id="pin-dot-0" class="w-4 h-4 rounded-full border-2 border-black bg-white transition-all duration-150"></div>
+        <div id="pin-dot-1" class="w-4 h-4 rounded-full border-2 border-black bg-white transition-all duration-150"></div>
+        <div id="pin-dot-2" class="w-4 h-4 rounded-full border-2 border-black bg-white transition-all duration-150"></div>
+        <div id="pin-dot-3" class="w-4 h-4 rounded-full border-2 border-black bg-white transition-all duration-150"></div>
+      </div>
+
+      <!-- Status / Feedback Message -->
+      <div class="h-6 flex items-center justify-center">
+        <span id="pin-message-text" class="text-xs font-semibold text-zinc-500">
+          Tap digits or use keyboard (PIN: 1111)
+        </span>
+      </div>
+    </div>
+
+    <!-- Bottom: Touch Keypad Grid (3x4) -->
+    <div class="w-full max-w-xs pb-4">
+      <div class="grid grid-cols-3 gap-3 sm:gap-4 justify-items-center">
+        <button type="button" onclick="AppLock.pressDigit('1')" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl border-2 border-black bg-white text-black font-black text-2xl flex items-center justify-center hover:bg-black hover:text-white active:bg-black active:text-white active:scale-95 transition-all shadow-xs">1</button>
+        <button type="button" onclick="AppLock.pressDigit('2')" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl border-2 border-black bg-white text-black font-black text-2xl flex items-center justify-center hover:bg-black hover:text-white active:bg-black active:text-white active:scale-95 transition-all shadow-xs">2</button>
+        <button type="button" onclick="AppLock.pressDigit('3')" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl border-2 border-black bg-white text-black font-black text-2xl flex items-center justify-center hover:bg-black hover:text-white active:bg-black active:text-white active:scale-95 transition-all shadow-xs">3</button>
+        <button type="button" onclick="AppLock.pressDigit('4')" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl border-2 border-black bg-white text-black font-black text-2xl flex items-center justify-center hover:bg-black hover:text-white active:bg-black active:text-white active:scale-95 transition-all shadow-xs">4</button>
+        <button type="button" onclick="AppLock.pressDigit('5')" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl border-2 border-black bg-white text-black font-black text-2xl flex items-center justify-center hover:bg-black hover:text-white active:bg-black active:text-white active:scale-95 transition-all shadow-xs">5</button>
+        <button type="button" onclick="AppLock.pressDigit('6')" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl border-2 border-black bg-white text-black font-black text-2xl flex items-center justify-center hover:bg-black hover:text-white active:bg-black active:text-white active:scale-95 transition-all shadow-xs">6</button>
+        <button type="button" onclick="AppLock.pressDigit('7')" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl border-2 border-black bg-white text-black font-black text-2xl flex items-center justify-center hover:bg-black hover:text-white active:bg-black active:text-white active:scale-95 transition-all shadow-xs">7</button>
+        <button type="button" onclick="AppLock.pressDigit('8')" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl border-2 border-black bg-white text-black font-black text-2xl flex items-center justify-center hover:bg-black hover:text-white active:bg-black active:text-white active:scale-95 transition-all shadow-xs">8</button>
+        <button type="button" onclick="AppLock.pressDigit('9')" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl border-2 border-black bg-white text-black font-black text-2xl flex items-center justify-center hover:bg-black hover:text-white active:bg-black active:text-white active:scale-95 transition-all shadow-xs">9</button>
+        <button type="button" onclick="AppLock.clearAll()" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl border-2 border-zinc-300 bg-white text-zinc-700 font-bold text-xs sm:text-sm flex items-center justify-center hover:border-black hover:text-black active:scale-95 transition-all shadow-xs">CLEAR</button>
+        <button type="button" onclick="AppLock.pressDigit('0')" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl border-2 border-black bg-white text-black font-black text-2xl flex items-center justify-center hover:bg-black hover:text-white active:bg-black active:text-white active:scale-95 transition-all shadow-xs">0</button>
+        <button type="button" onclick="AppLock.backspace()" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl border-2 border-zinc-300 bg-white text-black font-black text-xl flex items-center justify-center hover:border-black hover:text-black active:scale-95 transition-all shadow-xs">⌫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Shell Wrapper -->
+  <div class="flex h-screen overflow-hidden bg-white">
+
+    <!-- Mobile Drawer Backdrop Overlay -->
+    <div id="mobile-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-30 hidden md:hidden transition-opacity" onclick="App.toggleMobileSidebar(true)"></div>
+
+    <!-- ==================== CLEAN SIDEBAR (White Background, Black Text) ==================== -->
+    <aside id="sidebar" class="w-60 bg-white text-black border-r border-slate-200 flex flex-col shrink-0 transition-transform duration-300 z-40 fixed md:static inset-y-0 left-0 -translate-x-full md:translate-x-0 shadow-xl md:shadow-none">
+      
+      <!-- Brand Logo Header -->
+      <div class="p-4 border-b border-slate-200 flex items-center gap-3 bg-white">
+        <div class="w-9 h-9 rounded-xl overflow-hidden border border-slate-300 shadow-xs shrink-0 bg-white flex items-center justify-center p-0.5">
+          <img src="/assets/luiscart-logo.png" alt="LUISCART" class="w-full h-full object-cover rounded-lg">
+        </div>
+        <div class="flex-1 min-w-0">
+          <h2 class="font-black text-base tracking-tight text-black leading-none truncate">LUISCART</h2>
+          <span class="text-[10px] uppercase tracking-wider text-slate-500 font-bold block mt-1">Dropshipping Hub</span>
+        </div>
+        <button class="md:hidden ml-auto text-slate-500 hover:text-black p-1 font-bold" onclick="App.toggleMobileSidebar(true)">✕</button>
+      </div>
+
+      <!-- Essential Navigation Links (5 Core Options) -->
+      <nav class="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+        <a href="javascript:void(0)" onclick="App.navigate('dashboard')" data-route="dashboard" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-800 hover:text-black hover:bg-slate-100 transition">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-slate-700"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="javascript:void(0)" onclick="App.navigate('orders')" data-route="orders" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-800 hover:text-black hover:bg-slate-100 transition">
+          <i data-lucide="shopping-bag" class="w-4 h-4 text-slate-700"></i>
+          <span>Orders</span>
+        </a>
+
+        <a href="javascript:void(0)" onclick="App.navigate('suppliers')" data-route="suppliers" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-800 hover:text-black hover:bg-slate-100 transition">
+          <i data-lucide="truck" class="w-4 h-4 text-slate-700"></i>
+          <span>Suppliers Hub</span>
+        </a>
+
+        <a href="javascript:void(0)" onclick="App.navigate('products')" data-route="products" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-800 hover:text-black hover:bg-slate-100 transition">
+          <i data-lucide="package" class="w-4 h-4 text-slate-700"></i>
+          <span>Products & Margins</span>
+        </a>
+
+        <a href="javascript:void(0)" onclick="App.navigate('billing')" data-route="billing" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-800 hover:text-black hover:bg-slate-100 transition">
+          <i data-lucide="badge-dollar-sign" class="w-4 h-4 text-slate-700"></i>
+          <span>Profit & Loss</span>
+        </a>
+
+        <div class="pt-4 mt-4 border-t border-slate-200 space-y-1">
+          <a href="javascript:void(0)" onclick="App.navigate('settings')" data-route="settings" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-800 hover:text-black hover:bg-slate-100 transition">
+            <i data-lucide="settings" class="w-4 h-4 text-slate-700"></i>
+            <span>Settings</span>
+          </a>
+          <button type="button" onclick="AppLock.lock()" class="w-full text-left flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:text-black hover:bg-slate-100 transition">
+            <i data-lucide="lock" class="w-4 h-4 text-slate-700"></i>
+            <span>Lock Store</span>
+          </button>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- ==================== MAIN CONTENT WRAPPER ==================== -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-white">
+
+      <!-- Clean & Focused Top Header Navbar -->
+      <header class="h-14 bg-white border-b border-slate-200 px-3 sm:px-6 flex items-center justify-between shrink-0 z-20">
+        <div class="flex items-center gap-2.5">
+          <button class="md:hidden text-black hover:bg-slate-100 p-1.5 rounded-lg border border-slate-300" onclick="App.toggleMobileSidebar()">
+            <i data-lucide="menu" class="w-5 h-5 text-black"></i>
+          </button>
+          <span id="page-title" class="font-black text-black text-sm sm:text-base tracking-tight truncate max-w-[150px] sm:max-w-none">Dashboard</span>
+        </div>
+
+        <!-- Right Actions: Theme Toggle, Quick Lock, + New Order, Admin Profile -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Quick Lock Store Button -->
+          <button
+            id="lock-app-btn"
+            onclick="AppLock.lock()"
+            title="Lock Store with PIN"
+            class="px-2.5 py-1.5 rounded-xl bg-white border border-slate-300 text-black hover:bg-slate-100 transition flex items-center gap-1.5 shadow-xs text-xs font-bold"
+          >
+            <i data-lucide="lock" class="w-3.5 h-3.5 text-black"></i>
+            <span class="hidden sm:inline">Lock</span>
+          </button>
+
+          <!-- Light / Dark Mode Toggle Button -->
+          <button
+            id="theme-toggle-btn"
+            onclick="App.toggleTheme()"
+            title="Toggle Theme"
+            class="p-2 rounded-xl bg-white border border-slate-300 text-black hover:bg-slate-100 transition flex items-center justify-center shadow-xs"
+          >
+            <i data-lucide="moon" id="theme-toggle-icon" class="w-4 h-4 text-black"></i>
+          </button>
+
+          <!-- Quick New Order Button -->
+          <button onclick="App.navigate('pos')" class="btn-primary text-xs py-1.5 px-2.5 sm:px-3 shadow-xs flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline font-bold">New Order</span>
+          </button>
+
+          <!-- User Profile -->
+          <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
+            <div class="w-7 h-7 rounded-full bg-black text-white font-black flex items-center justify-center text-xs shadow-xs">
+              L
+            </div>
+            <span class="text-xs font-bold text-black hidden lg:inline">Admin</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Scrollable Content Area -->
+      <main class="flex-1 overflow-y-auto p-3.5 sm:p-6 lg:p-8 pb-24 md:pb-8 bg-white transition-colors">
+        <div id="main-content" class="max-w-7xl mx-auto space-y-6">
+          <!-- Dynamic Content Rendered by Components -->
+        </div>
+      </main>
+
+      <!-- ==================== MOBILE BOTTOM APP BAR (Native App Navigation) ==================== -->
+      <nav class="md:hidden fixed bottom-0 inset-x-0 h-16 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 flex items-center justify-around px-2 pb-safe shadow-lg">
+        <button onclick="App.navigate('dashboard')" data-mobile-route="dashboard" class="mobile-nav-btn flex flex-col items-center justify-center gap-1 w-14 py-1 text-black font-extrabold transition">
+          <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+          <span class="text-[10px] leading-none">Home</span>
+        </button>
+
+        <button onclick="App.navigate('orders')" data-mobile-route="orders" class="mobile-nav-btn flex flex-col items-center justify-center gap-1 w-14 py-1 text-slate-500 font-medium transition">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+          <span class="text-[10px] leading-none">Orders</span>
+        </button>
+
+        <button onclick="App.navigate('pos')" data-mobile-route="pos" class="flex flex-col items-center justify-center -mt-5">
+          <div class="w-12 h-12 rounded-full bg-black text-white shadow-lg flex items-center justify-center hover:bg-neutral-800 transition transform active:scale-95">
+            <i data-lucide="plus" class="w-6 h-6"></i>
+          </div>
+          <span class="text-[10px] font-bold text-black mt-1 leading-none">New</span>
+        </button>
+
+        <button onclick="App.navigate('products')" data-mobile-route="products" class="mobile-nav-btn flex flex-col items-center justify-center gap-1 w-14 py-1 text-slate-500 font-medium transition">
+          <i data-lucide="package" class="w-5 h-5"></i>
+          <span class="text-[10px] leading-none">Catalog</span>
+        </button>
+
+        <button onclick="App.navigate('billing')" data-mobile-route="billing" class="mobile-nav-btn flex flex-col items-center justify-center gap-1 w-14 py-1 text-slate-500 font-medium transition">
+          <i data-lucide="badge-dollar-sign" class="w-5 h-5"></i>
+          <span class="text-[10px] leading-none">P&L</span>
+        </button>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Component Scripts -->
+  <script src="/js/utils.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/components/appLock.js"></script>
+  <script src="/js/components/invoiceModal.js"></script>
+  <script src="/js/components/shippingLabelModal.js"></script>
+  <script src="/js/components/dashboard.js"></script>
+  <script src="/js/components/orders.js"></script>
+  <script src="/js/components/orderDetails.js"></script>
+  <script src="/js/components/customers.js"></script>
+  <script src="/js/components/products.js"></script>
+  <script src="/js/components/suppliers.js"></script>
+  <script src="/js/components/billing.js"></script>
+  <script src="/js/components/posSimulator.js"></script>
+  <script src="/js/components/settings.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

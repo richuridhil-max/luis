@@ -1,0 +1,7 @@
+node_modules/
+*.db-shm
+*.db-wal
+*.log
+.gemini/
+.DS_Store
+Thumbs.db
