@@ -162,32 +162,58 @@ const DashboardComponent = {
             <div>
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-bold text-base text-black flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-black"></span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                   Order Funnel Status
                 </h3>
-                <span class="text-xs text-zinc-500">Fulfillment Pipeline</span>
+                <span class="text-xs text-zinc-500 font-semibold">Fulfillment Pipeline</span>
               </div>
               <div class="h-56 relative flex items-center justify-center">
                 <canvas id="orderStatusChart"></canvas>
               </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-zinc-200 text-xs">
+            <div class="grid grid-cols-2 gap-x-3 gap-y-2 mt-4 pt-3 border-t border-zinc-200 text-xs">
               <div class="flex justify-between items-center py-1">
-                <span class="text-black font-bold">● Delivered</span>
-                <span class="font-black text-black">${orderAnalytics.DELIVERED.count}</span>
+                <span class="flex items-center gap-1.5 font-bold text-black">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#10b981] shrink-0"></span>
+                  Delivered
+                </span>
+                <span class="font-black text-black font-mono">${orderAnalytics.DELIVERED?.count || 0}</span>
               </div>
               <div class="flex justify-between items-center py-1">
-                <span class="text-zinc-700 font-semibold">● Shipped</span>
-                <span class="font-black text-black">${orderAnalytics.SHIPPED.count}</span>
+                <span class="flex items-center gap-1.5 font-bold text-black">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#3b82f6] shrink-0"></span>
+                  Shipped
+                </span>
+                <span class="font-black text-black font-mono">${orderAnalytics.SHIPPED?.count || 0}</span>
               </div>
               <div class="flex justify-between items-center py-1">
-                <span class="text-zinc-600 font-semibold">● Processing</span>
-                <span class="font-black text-black">${orderAnalytics.PROCESSING.count}</span>
+                <span class="flex items-center gap-1.5 font-bold text-black">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b] shrink-0"></span>
+                  Processing
+                </span>
+                <span class="font-black text-black font-mono">${orderAnalytics.PROCESSING?.count || 0}</span>
               </div>
               <div class="flex justify-between items-center py-1">
-                <span class="text-zinc-500 font-semibold">● Returned / RTO</span>
-                <span class="font-black text-black">${orderAnalytics.RETURNED.count}</span>
+                <span class="flex items-center gap-1.5 font-bold text-black">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#8b5cf6] shrink-0"></span>
+                  Confirmed
+                </span>
+                <span class="font-black text-black font-mono">${orderAnalytics.CONFIRMED?.count || 0}</span>
+              </div>
+              <div class="flex justify-between items-center py-1">
+                <span class="flex items-center gap-1.5 font-bold text-black">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#06b6d4] shrink-0"></span>
+                  New
+                </span>
+                <span class="font-black text-black font-mono">${orderAnalytics.NEW?.count || 0}</span>
+              </div>
+              <div class="flex justify-between items-center py-1">
+                <span class="flex items-center gap-1.5 font-bold text-black">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#ef4444] shrink-0"></span>
+                  Returned
+                </span>
+                <span class="font-black text-black font-mono">${(orderAnalytics.RETURNED?.count || 0) + (orderAnalytics.CANCELLED?.count || 0)}</span>
               </div>
             </div>
           </div>
@@ -498,6 +524,24 @@ const DashboardComponent = {
         (analytics.RETURNED?.count || 0) + (analytics.CANCELLED?.count || 0)
       ];
 
+      const statusColors = [
+        '#10b981', // Delivered (Emerald Green)
+        '#3b82f6', // Shipped (Blue)
+        '#f59e0b', // Processing (Amber)
+        '#8b5cf6', // Confirmed (Purple)
+        '#06b6d4', // New (Cyan)
+        '#ef4444'  // Returned (Red)
+      ];
+
+      const hoverColors = [
+        '#059669',
+        '#2563eb',
+        '#d97706',
+        '#7c3aed',
+        '#0891b2',
+        '#dc2626'
+      ];
+
       this.orderChartInstance = new Chart(orderCtx, {
         type: 'doughnut',
         data: {
@@ -505,14 +549,8 @@ const DashboardComponent = {
           datasets: [
             {
               data: statusCounts,
-              backgroundColor: [
-                '#000000',
-                '#27272a',
-                '#52525b',
-                '#71717a',
-                '#a1a1aa',
-                '#d4d4d8'
-              ],
+              backgroundColor: statusColors,
+              hoverBackgroundColor: hoverColors,
               borderWidth: 2,
               borderColor: '#ffffff'
             }
@@ -522,9 +560,24 @@ const DashboardComponent = {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false }
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#000000',
+              titleColor: '#ffffff',
+              bodyColor: '#ffffff',
+              padding: 10,
+              cornerRadius: 8,
+              callbacks: {
+                label: function(context) {
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0) || 1;
+                  const val = context.raw || 0;
+                  const pct = Math.round((val / total) * 100);
+                  return ` ${context.label}: ${val} orders (${pct}%)`;
+                }
+              }
+            }
           },
-          cutout: '70%'
+          cutout: '68%'
         }
       });
     }
